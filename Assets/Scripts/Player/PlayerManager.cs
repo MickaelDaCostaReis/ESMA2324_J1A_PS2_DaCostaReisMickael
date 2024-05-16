@@ -26,6 +26,7 @@ public class PlayerManager : MonoBehaviour
         // Inputs :
         horizontal = Input.GetAxis("Horizontal");
         jump = Input.GetButton("Jump");
+
         //Sprite & Animations :
         Flip();
         //GetComponent<Animator>().SetBool("Walk", horizontal != 0);
@@ -43,7 +44,7 @@ public class PlayerManager : MonoBehaviour
 
         //Jump :
         
-        if (jump)
+        if (jump && IsGrounded())
         {
             Jump();
         }
@@ -69,11 +70,8 @@ public class PlayerManager : MonoBehaviour
 
     private void Jump()
     {
-        if (IsGrounded())
-        {
-            rb.velocity = new Vector2(rb.velocity.x, jumpingPower);
-            grounded = false;
-        }
+        rb.velocity = new Vector2(rb.velocity.x, jumpingPower);
+        grounded = false;
     }
 
     private void JumpEnder()
@@ -84,6 +82,25 @@ public class PlayerManager : MonoBehaviour
         if (Input.GetButtonUp("Jump") && !IsGrounded())
         {
             rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
+        }
+    }
+
+
+    // ELEVATOR :
+    //Le joueur passe en parent pour un mouvement plus lisse
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Elevator"))
+        {
+            transform.SetParent(collision.transform);
+        }
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Elevator"))
+        {
+            transform.SetParent(null);
         }
     }
 }
