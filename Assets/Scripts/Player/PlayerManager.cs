@@ -86,6 +86,7 @@ public class PlayerManager : MonoBehaviour
     }
 
 
+
     // ELEVATOR :
     //Le joueur passe en parent pour un mouvement plus lisse
     private void OnCollisionEnter2D(Collision2D collision)
