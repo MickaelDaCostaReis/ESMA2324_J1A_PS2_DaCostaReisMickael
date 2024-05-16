@@ -23,7 +23,7 @@ public class Parallax : MonoBehaviour
         transform.position = new Vector3(startpos + distance, starty, transform.position.z);
 
         // déplace les backgrounds pour les "répéter"
-        if (tmp > startpos + length) startpos += length;
-        else if (tmp < startpos - length) startpos -= length;
+        if (tmp > startpos + length) startpos += length*2;
+        else if (tmp < startpos - length) startpos -= length*2;
     }
 }
