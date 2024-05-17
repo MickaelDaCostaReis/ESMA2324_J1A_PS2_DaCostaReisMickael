@@ -4,28 +4,42 @@ using UnityEngine;
 
 public class PlayerManager : MonoBehaviour
 {
+    [Header("Horizontal Movement")]
+    [SerializeField] private float speed;
     private float horizontal;
+
+
+    [Header("Jump Settings")]
+    [SerializeField] private float coyoteTime;
+    [SerializeField] private int jumpBufferFrames;
+    [SerializeField] private int maxAirJumps;
+    [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private float jumpingPower;
     private bool jump;
-    private BoxCollider2D boxCollider;
-    private Rigidbody2D rb;
+    private bool releaseJump;
+    private int jumpBufferCounter=0;
+    private float coyoteTimeCounter = 0;
+    private int airJumpsCounter = 0;
+    private PlayerStateList pState;
     private bool grounded;
 
-    [SerializeField] private float speed;
-    [SerializeField] private float jumpingPower;
-    [SerializeField] private LayerMask groundLayer;
+    private BoxCollider2D boxCollider;
+    private Rigidbody2D rb;
 
     private void Awake()
     {
         grounded = true;
         rb = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
+        pState = GetComponent<PlayerStateList>();
     }
 
     void Update()
     {
         // Inputs :
         horizontal = Input.GetAxis("Horizontal");
-        jump = Input.GetButton("Jump");
+        releaseJump = Input.GetButtonUp("Jump");
+        jump = Input.GetButtonDown("Jump");
 
         //Sprite & Animations :
         Flip();
@@ -34,7 +48,9 @@ public class PlayerManager : MonoBehaviour
 
         //checks
         grounded = IsGrounded();
-        JumpEnder();
+        UpdateJumpVariables();
+        //Jump :
+        Jump();
     }
 
     private void FixedUpdate()
@@ -42,24 +58,17 @@ public class PlayerManager : MonoBehaviour
         //Movement
         rb.velocity = new Vector2(horizontal * speed, rb.velocity.y);
 
-        //Jump :
         
-        if (jump && IsGrounded())
-        {
-            Jump();
-        }
+        
     }
-    // vrai si le joueur touche le sol
+    // vrai si le joueur touche le sol, faux sinon
     private bool IsGrounded()
     {
         RaycastHit2D raycastHit = Physics2D.BoxCast(boxCollider.bounds.center, boxCollider.bounds.size, 0, Vector2.down, 0.1f, groundLayer);
         return raycastHit.collider != null;
     }
-    // vrai si le joueur touche un mur qu'il regarde
     
-
     //Inverse le scale du sprite, flip le joueur
-
     private void Flip()
     {
         if (horizontal > 0.01f)
@@ -70,22 +79,48 @@ public class PlayerManager : MonoBehaviour
 
     private void Jump()
     {
-        rb.velocity = new Vector2(rb.velocity.x, jumpingPower);
-        grounded = false;
-    }
-
-    private void JumpEnder()
-    {
-
-        // Divise par deux la velocity si le bouton jump est relâché
-
-        if (Input.GetButtonUp("Jump") && !IsGrounded())
+        //stop la monté au relachement de la touche de saut
+        if (releaseJump && rb.velocity.y>0)
         {
-            rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
+            rb.velocity = new Vector2(rb.velocity.x, 0);
+            pState.isJumping = false;
         }
+
+        if (!pState.isJumping)
+        {
+            //Saute
+            if (jumpBufferCounter > 0 && coyoteTimeCounter > 0)
+            {
+                rb.velocity = new Vector2(rb.velocity.x, jumpingPower);
+                pState.isJumping = true;
+            }
+            else if(!grounded && airJumpsCounter < maxAirJumps && jump)
+            {
+                pState.isJumping = true;
+                airJumpsCounter++;
+                rb.velocity = new Vector2(rb.velocity.x, jumpingPower);
+            }
+        }
+        
     }
 
-
+    private void UpdateJumpVariables()
+    {
+        if (IsGrounded())
+        {
+            pState.isJumping = false;
+            coyoteTimeCounter = coyoteTime;
+            airJumpsCounter = 0;
+        }
+        else
+        {
+            coyoteTimeCounter -= Time.deltaTime;
+        }
+        if (jump)
+            jumpBufferCounter = jumpBufferFrames;
+        else
+            jumpBufferCounter--;
+    }
 
     // ELEVATOR :
     //Le joueur passe en parent pour un mouvement plus lisse

@@ -22,7 +22,7 @@ public class Item : ScriptableObject
         Tool,
         Weapon,
         Potion,
-        Quest
+        Quest,
     }
 
     public enum ActionType
