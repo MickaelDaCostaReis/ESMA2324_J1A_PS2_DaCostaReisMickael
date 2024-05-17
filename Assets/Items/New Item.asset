@@ -15,5 +15,5 @@ MonoBehaviour:
   type: 0
   actionType: 0
   id: 0
-  stackable: 1
+  stackable: 0
   image: {fileID: 0}
