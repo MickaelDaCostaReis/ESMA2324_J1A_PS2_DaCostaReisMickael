@@ -7,7 +7,6 @@ public class Parallax : MonoBehaviour
     private float length, startpos, starty;
     [SerializeField] private GameObject cam;
     [SerializeField] private float parallaxCoef;
-
     void Start()
     {
         startpos = transform.position.x;
