@@ -31,12 +31,14 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private float DashSpeed;
     [SerializeField] private float DashTime;
     [SerializeField] private float DashCoolDown;
+    private bool dashCoolDownOK;
     private bool canDash = true;
-    private bool hasDashed = false;
     private float gravity;
+    private bool dashPowerUp = false;
 
     private BoxCollider2D boxCollider;
     private Rigidbody2D rb;
+    private Animator animation;
 
     private void Awake()
     {
@@ -44,6 +46,7 @@ public class PlayerManager : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
         pState = GetComponent<PlayerStateList>();
+        animation = GetComponent<Animator>();
         gravity = rb.gravityScale;
         player = ReInput.players.GetPlayer(playerID);
     }
@@ -51,26 +54,27 @@ public class PlayerManager : MonoBehaviour
     void Update()
     {
         StartDash();
-        //checks
         grounded = IsGrounded();
         UpdateJumpVariables();
-        // Inputs :
+        GetInputs();
+        DashReset();
+        if (pState.isDashing) return; // empêche d'autres inputs d'interrompre le dash
+        Move();
+        Flip();
+        Jump();
+    }
+
+    private void Move()
+    {
+
+        rb.velocity = new Vector2(horizontal * speed, rb.velocity.y);
+    }
+    private void GetInputs()
+    {
         horizontal = player.GetAxis("Horizontal");
         releaseJump = player.GetButtonUp("Jump");
         jump = player.GetButtonDown("Jump");
-        if (hasDashed) return;
-        //Sprite & Animations :
-        Flip();
-        //GetComponent<Animator>().SetBool("Walk", horizontal != 0);
-        //GetComponent<Animator>().SetBool("Grounded", grounded);
-
-        
-        //Jump :
-        Jump();
-        //Movement
-        rb.velocity = new Vector2(horizontal * speed, rb.velocity.y);
     }
-
     // vrai si le joueur touche le sol, faux sinon
     private bool IsGrounded()
     {
@@ -155,21 +159,18 @@ public class PlayerManager : MonoBehaviour
     // DASH :
     void StartDash()
     {
-        if(player.GetButtonDown("Dash") && canDash/* && !hasDashed*/)
+        if(dashPowerUp && player.GetButtonDown("Dash") && canDash && !pState.isDashing)
         {
             Debug.Log("dashing!");
             StartCoroutine(Dash());
-            Debug.Log("dash!");
-            hasDashed = true;
+            Debug.Log("dashed!");
         }
-
-        if (grounded)
-            hasDashed = false;
     }
 
     IEnumerator Dash()
     {
         canDash = false;
+        dashCoolDownOK = false;
         pState.isDashing = true;
         //animation.SetTrigger("Dashing");
         rb.gravityScale = 0;
@@ -178,6 +179,11 @@ public class PlayerManager : MonoBehaviour
         rb.gravityScale = gravity;
         pState.isDashing = false;
         yield return new WaitForSeconds(DashCoolDown);
-        canDash = true;
+        dashCoolDownOK = true;
+    }
+    private void DashReset()
+    {
+        if (dashCoolDownOK && grounded)
+            canDash = true;
     }
 }
