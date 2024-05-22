@@ -31,10 +31,10 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private float DashSpeed;
     [SerializeField] private float DashTime;
     [SerializeField] private float DashCoolDown;
+    [SerializeField] private bool dashPowerUp;
     private bool dashCoolDownOK;
     private bool canDash = true;
     private float gravity;
-    private bool dashPowerUp = false;
 
     private BoxCollider2D boxCollider;
     private Rigidbody2D rb;
@@ -66,7 +66,6 @@ public class PlayerManager : MonoBehaviour
 
     private void Move()
     {
-
         rb.velocity = new Vector2(horizontal * speed, rb.velocity.y);
     }
     private void GetInputs()
@@ -161,9 +160,7 @@ public class PlayerManager : MonoBehaviour
     {
         if(dashPowerUp && player.GetButtonDown("Dash") && canDash && !pState.isDashing)
         {
-            Debug.Log("dashing!");
             StartCoroutine(Dash());
-            Debug.Log("dashed!");
         }
     }
 

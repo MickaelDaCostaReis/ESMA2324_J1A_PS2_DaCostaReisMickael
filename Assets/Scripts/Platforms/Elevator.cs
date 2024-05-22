@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Rewired;
 
 public class Elevator : MonoBehaviour
 {
@@ -8,7 +9,13 @@ public class Elevator : MonoBehaviour
     [SerializeField] private float speed;
     [SerializeField] private Transform up, down, player, elevatorSwitch;
     [SerializeField] private SpriteRenderer sprite;
+    private Player playerControl;
+    private int playerID;
 
+    private void Awake()
+    {
+        playerControl = ReInput.players.GetPlayer(playerID);
+    }
     private void Update()
     {
         StartElevator();
@@ -18,7 +25,7 @@ public class Elevator : MonoBehaviour
     //Initialise la position de l'ascenseur et sa direction de mouvement
     void StartElevator()
     {
-        if(Vector2.Distance(player.position,elevatorSwitch.position)<1f && Input.GetKeyDown(KeyCode.E))
+        if(Vector2.Distance(player.position,elevatorSwitch.position)<1f && playerControl.GetButton("Interact"))
         {
             if (transform.position.y <= down.position.y)
             {
