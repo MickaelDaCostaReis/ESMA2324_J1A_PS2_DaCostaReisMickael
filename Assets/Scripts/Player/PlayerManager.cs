@@ -28,6 +28,15 @@ public class PlayerManager : MonoBehaviour
     private PlayerStateList pState;
     private bool grounded;
 
+    [Header("WallJump Settings")]
+    [SerializeField] private float wallSlindingSpeed;
+    [SerializeField] private Transform wallCheck;
+    [SerializeField] LayerMask wallLayer;
+    [SerializeField] private float wallJumpingDuration;
+    [SerializeField] private Vector2 wallJumpingPower;
+    private float wallJumpingDirection;
+    private bool wallJumpingPowerUp;
+
     [Header("Dash Settings")]
     [SerializeField] private float DashSpeed;
     [SerializeField] private float DashTime;
@@ -50,19 +59,29 @@ public class PlayerManager : MonoBehaviour
         animation = GetComponent<Animator>();
         gravity = rb.gravityScale;
         player = ReInput.players.GetPlayer(playerID);
+        pState.isWallJumping = false;
     }
 
     void Update()
     {
         StartDash();
-        grounded = IsGrounded();
+        grounded = IsGrounded();    //Fonctionne mieux ainsi, ne s'actualisait pas correctement
         UpdateJumpVariables();
         GetInputs();
         DashReset();
+        if (wallJumpingPowerUp)
+        {
+            WallSlide();
+            WallJump();
+        }
         if (pState.isDashing) return; // empêche d'autres inputs d'interrompre le dash
-        Move();
-        Flip();
-        Jump();
+        if (!pState.isWallJumping)
+        {
+            if(!Walled())
+                Move();
+            Flip();
+            Jump();
+        }
     }
 
     private void Move()
@@ -86,20 +105,81 @@ public class PlayerManager : MonoBehaviour
         RaycastHit2D raycastHit = Physics2D.BoxCast(boxCollider.bounds.center, boxCollider.bounds.size, 0, Vector2.down, 0.1f, groundLayer);
         return raycastHit.collider != null;
     }
+
+    //WALL JUMP
+
+    private bool Walled()
+    {
+        return Physics2D.OverlapCircle(wallCheck.position, 0.2f, wallLayer);
+    }
     
+    private void WallSlide()
+    {
+        if(Walled()&& !grounded && horizontal != 0)
+        {
+            pState.isWallSliding = true;
+            rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.x, -wallSlindingSpeed, float.MaxValue));
+        }
+        else
+        {
+            pState.isWallSliding = false;
+        }
+    }
+
+    private void WallJump()
+    {
+        if (pState.isWallSliding)
+        {
+            pState.isWallJumping = false;
+            wallJumpingDirection = !pState.isLookingRight ? 1 : -1;
+            CancelInvoke(nameof(StopWallJumping));
+        }
+        if(player.GetButtonDown("Jump")&& pState.isWallSliding)
+        {
+            pState.isWallJumping = true;
+            rb.velocity = new Vector2(wallJumpingDirection * wallJumpingPower.x, wallJumpingPower.y);
+            canDash = true;
+            airJumpsCounter = 0;
+            //Tourne le character sans movement input
+            if (!pState.isLookingRight)
+            {
+                runningParticles.transform.localScale = new Vector3(0.5F, 0.5f, 0.5f);   //Particles
+                transform.localScale = Vector3.one;                                      //Character
+                pState.isLookingRight = true;
+            }
+            else if (pState.isLookingRight)
+            {
+                runningParticles.transform.localScale = new Vector3(-0.5f, 0.5F, 0.5f);
+                transform.localScale = new Vector3(-1, 1, 1);
+                pState.isLookingRight = false;
+            }
+            Invoke(nameof(StopWallJumping), wallJumpingDuration);
+        }
+    }
+
+    private void StopWallJumping()
+    {
+        pState.isWallJumping = false;
+    }
+
     //Inverse le scale du sprite, flip le joueur et ses particules 
     private void Flip()
     {
-        if (horizontal > 0.01f)
+        if (horizontal > 0.01f && !pState.isLookingRight)
         {
-            runningParticles.transform.localScale =new Vector3(0.566900015f, 0.566900015f, 0.566900015f);   //Particles
-            transform.localScale = Vector3.one;                                                             //Character
-        }        else if (horizontal < -0.01f)
+            runningParticles.transform.localScale =new Vector3(0.5f, 0.5f, 0.5f);    //Particles
+            transform.localScale = Vector3.one;                                      //Character
+            pState.isLookingRight = true;
+        }        
+        else if (horizontal < -0.01f && pState.isLookingRight)
         {
-            runningParticles.transform.localScale = new Vector3(-0.566900015f, 0.566900015f, 0.566900015f);
+            runningParticles.transform.localScale = new Vector3(-0.5f, 0.5f, 0.5f);
             transform.localScale = new Vector3(-1, 1, 1);
+            pState.isLookingRight = false;
         }
     }
+
+    //JUMP
 
     private void Jump()
     {

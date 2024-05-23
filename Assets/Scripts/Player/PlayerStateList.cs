@@ -7,4 +7,7 @@ public class PlayerStateList : MonoBehaviour
     public bool isJumping;
     public bool isDashing;
     public bool isRunning;
+    public bool isWallSliding;
+    public bool isWallJumping;
+    public bool isLookingRight;
 }
