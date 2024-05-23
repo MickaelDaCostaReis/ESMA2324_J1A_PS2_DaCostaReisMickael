@@ -6,4 +6,5 @@ public class PlayerStateList : MonoBehaviour
 {
     public bool isJumping;
     public bool isDashing;
+    public bool isRunning;
 }

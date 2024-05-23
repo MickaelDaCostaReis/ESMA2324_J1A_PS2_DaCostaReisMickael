@@ -10,8 +10,9 @@ public class PlayerManager : MonoBehaviour
 
     [Header("Horizontal Movement")]
     [SerializeField] private float speed;
+    [SerializeField] private GameObject runningParticles;
+    [SerializeField] private float runningParticlesStopTime;
     private float horizontal;
-
 
     [Header("Jump Settings")]
     [SerializeField] private float coyoteTime;
@@ -67,7 +68,12 @@ public class PlayerManager : MonoBehaviour
     private void Move()
     {
         rb.velocity = new Vector2(horizontal * speed, rb.velocity.y);
+        if (rb.velocity.x != 0 && grounded)
+            runningParticles.SetActive(true);
+        else
+            StartCoroutine(StopRunning());
     }
+
     private void GetInputs()
     {
         horizontal = player.GetAxis("Horizontal");
@@ -81,18 +87,23 @@ public class PlayerManager : MonoBehaviour
         return raycastHit.collider != null;
     }
     
-    //Inverse le scale du sprite, flip le joueur
+    //Inverse le scale du sprite, flip le joueur et ses particules 
     private void Flip()
     {
         if (horizontal > 0.01f)
-            transform.localScale = Vector3.one;
-        else if (horizontal < -0.01f)
+        {
+            runningParticles.transform.localScale =new Vector3(0.566900015f, 0.566900015f, 0.566900015f);   //Particles
+            transform.localScale = Vector3.one;                                                             //Character
+        }        else if (horizontal < -0.01f)
+        {
+            runningParticles.transform.localScale = new Vector3(-0.566900015f, 0.566900015f, 0.566900015f);
             transform.localScale = new Vector3(-1, 1, 1);
+        }
     }
 
     private void Jump()
     {
-        //stop la monté au relachement de la touche de saut
+        //stop la montée au relachement de la touche de saut
         if (releaseJump && rb.velocity.y>0)
         {
             rb.velocity = new Vector2(rb.velocity.x, 0);
@@ -182,5 +193,13 @@ public class PlayerManager : MonoBehaviour
     {
         if (dashCoolDownOK && grounded)
             canDash = true;
+    }
+
+    //Particules :
+
+    IEnumerator StopRunning()
+    {
+        yield return new WaitForSeconds(runningParticlesStopTime);
+        runningParticles.SetActive(false);
     }
 }
