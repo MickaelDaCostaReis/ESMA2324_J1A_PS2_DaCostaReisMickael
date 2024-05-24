@@ -5,6 +5,7 @@ using Rewired;
 
 public class PlayerManager : MonoBehaviour
 {
+    public static PlayerManager instance;
     private Player player;
     private int playerID;
 
@@ -12,7 +13,7 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private float speed;
     [SerializeField] private GameObject runningParticles;
     [SerializeField] private float runningParticlesStopTime;
-    private float horizontal;
+    private float horizontal, vertical;
 
     [Header("Jump Settings")]
     [SerializeField] private float coyoteTime;
@@ -46,12 +47,33 @@ public class PlayerManager : MonoBehaviour
     private bool canDash = true;
     private float gravity;
 
+    [Header("Attack Settings")]
+    [SerializeField] private Transform sideAtkTransform;
+    [SerializeField] private Transform upAtkTransform;
+    [SerializeField] private Transform downAtkTransform;
+    [SerializeField] private Vector2 sideAtkArea, upAtkArea, downAtkArea;
+    [SerializeField] private LayerMask atkLayer;
+    [SerializeField] private float damage;
+    private bool attack;
+    private float atkCoolDown, timeSinceATK;
+
+    [Header("Recoil Settings")]
+    [SerializeField] private int recoilX;
+    [SerializeField] private int recoilY;
+    [SerializeField] private float recoilXSpeed;
+    [SerializeField] private float recoilYSpeed;
+    private int stopXRecoil, stopYRecoil;
+
     private BoxCollider2D boxCollider;
     private Rigidbody2D rb;
     private Animator animation;
 
     private void Awake()
     {
+        if (instance != null)
+        {
+            instance = this;
+        }
         grounded = true;
         rb = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
@@ -82,6 +104,8 @@ public class PlayerManager : MonoBehaviour
             Flip();
             Jump();
         }
+        Attack();
+        Recoil();
     }
 
     private void Move()
@@ -95,9 +119,11 @@ public class PlayerManager : MonoBehaviour
 
     private void GetInputs()
     {
-        horizontal = player.GetAxis("Horizontal");
+        horizontal = player.GetAxisRaw("Horizontal");
+        vertical = player.GetAxisRaw("Vertical");
         releaseJump = player.GetButtonUp("Jump");
         jump = player.GetButtonDown("Jump");
+        attack = player.GetButtonDown("Attack");
     }
     // vrai si le joueur touche le sol, faux sinon
     private bool IsGrounded()
@@ -281,5 +307,121 @@ public class PlayerManager : MonoBehaviour
     {
         yield return new WaitForSeconds(runningParticlesStopTime);
         runningParticles.SetActive(false);
+    }
+
+    //Attaques :
+    private void Attack()
+    {
+        timeSinceATK += Time.deltaTime;
+        if(attack && timeSinceATK >= atkCoolDown)
+        {
+            timeSinceATK = 0;
+            //animation.SetTrigger("Attack");
+            if (vertical == 0 || vertical < 0 && grounded)
+            {
+                Hit(sideAtkTransform, sideAtkArea, ref pState.isRecoilingX,recoilXSpeed);
+            }
+            else if (vertical > 0)
+            {
+                Hit(upAtkTransform, upAtkArea, ref pState.isRecoilingY, recoilYSpeed);
+            }
+            else if (vertical < 0 && !grounded)
+            {
+                Hit(downAtkTransform, downAtkArea, ref pState.isRecoilingY, recoilYSpeed);
+            }
+        }
+    }
+
+    private void Hit(Transform _attackTransform, Vector2 _attackArea, ref bool _recoilDir, float _recoilStrength)
+    {
+        Collider2D[] objectsToHit = Physics2D.OverlapBoxAll(_attackTransform.position, _attackArea, 0, atkLayer);
+        if (objectsToHit.Length > 0)
+        {
+            _recoilDir = true;
+            for(int i=0; i < objectsToHit.Length; i++)
+            {
+                if (objectsToHit[i].GetComponent<Enemy>() != null)
+                {
+                    objectsToHit[i].GetComponent<Enemy>().EnemyHit(damage, (transform.position-objectsToHit[i].transform.position).normalized, _recoilStrength);
+                }
+            }
+        }
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.blue;
+        Gizmos.DrawWireCube(sideAtkTransform.position, sideAtkArea);
+        Gizmos.DrawWireCube(upAtkTransform.position, upAtkArea);
+        Gizmos.DrawWireCube(downAtkTransform.position, downAtkArea);
+    }
+
+
+    //Recul :
+    private void Recoil()
+    {
+        //Commence le Recul :
+        if (pState.isRecoilingX)
+        {
+            if (pState.isLookingRight)
+            {
+                rb.velocity = new Vector2(-recoilXSpeed, 0);
+            }
+            else
+            {
+                rb.velocity = new Vector2(recoilXSpeed, 0);
+            }
+        }
+        if (pState.isRecoilingY)
+        {
+
+            rb.gravityScale = 0;
+            if (vertical<0)
+            {
+                rb.velocity = new Vector2(rb.velocity.x, recoilYSpeed);
+            }
+            else
+            {
+                rb.velocity = new Vector2(rb.velocity.x, -recoilYSpeed);
+            }
+            airJumpsCounter = 0; 
+        }
+        else
+        {
+            rb.gravityScale = gravity;
+        }
+
+        // Stop le recul :
+        if(pState.isRecoilingX && stopXRecoil < recoilX)
+        {
+            stopXRecoil++;
+        }
+        else
+        {
+            StopRecoilX();
+        }
+
+        if (pState.isRecoilingY && stopYRecoil < recoilY)
+        {
+            stopYRecoil++;
+        }
+        else
+        {
+            StopRecoilY();
+        }
+        if (grounded)
+            StopRecoilY();
+    }
+
+    private void StopRecoilX()
+    {
+        stopXRecoil = 0;
+        pState.isRecoilingX = false;
+    }
+
+    private void StopRecoilY()
+    {
+        stopYRecoil = 0;
+        pState.isRecoilingY = false;
     }
 }
