@@ -12,4 +12,5 @@ public class PlayerStateList : MonoBehaviour
     public bool isLookingRight;
     public bool isRecoilingX;
     public bool isRecoilingY;
+    public bool isInvincible;
 }

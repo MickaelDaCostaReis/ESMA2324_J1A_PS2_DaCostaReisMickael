@@ -9,8 +9,9 @@ public class Enemy : MonoBehaviour
     [SerializeField] protected float recoilFactor;
     [SerializeField] protected bool isRecoiling =false;
 
-    [SerializeField] protected PlayerManager player;
+    protected PlayerManager player;
     [SerializeField] protected float speed;
+    [SerializeField] protected float damage;
 
     protected float recoilTimer;
     protected Rigidbody2D rb;
@@ -33,14 +34,33 @@ public class Enemy : MonoBehaviour
                 recoilTimer = 0;
             }
         }
+        if (!isRecoiling)
+        {
+            transform.position = Vector2.MoveTowards
+                (transform.position, new Vector2(PlayerManager.instance.transform.position.x, transform.position.y), speed * Time.deltaTime);
+        }
     }
 
-    protected virtual void EnemyHit(float _damadeDone, Vector2 _hitDirection, float _hitForce)
+    public virtual void EnemyHit(float _damadeDone, Vector2 _hitDirection, float _hitForce)
     {
         health -= _damadeDone;
         if (!isRecoiling)
         {
             rb.AddForce(-_hitForce * recoilFactor * _hitDirection);
+        }
+    }
+
+    protected virtual void Attack()
+    {
+        player.TakeDamage(damage);
+    }
+
+    protected void OnTriggerStay2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Player") && !player.pState.isInvincible)
+        {
+            Attack();
+            player.StopTimeOnHit(0,5,0.5f);
         }
     }
 }

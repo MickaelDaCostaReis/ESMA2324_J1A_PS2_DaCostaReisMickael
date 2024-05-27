@@ -6,8 +6,11 @@ using Rewired;
 public class PlayerManager : MonoBehaviour
 {
     public static PlayerManager instance;
+    // Commandes :
     private Player player;
     private int playerID;
+    //Etat :
+    [HideInInspector] public PlayerStateList pState;
 
     [Header("Horizontal Movement")]
     [SerializeField] private float speed;
@@ -26,7 +29,6 @@ public class PlayerManager : MonoBehaviour
     private int jumpBufferCounter=0; 
     private float coyoteTimeCounter = 0; //Permissibilité de saut après avoir quitté le sol
     private int airJumpsCounter = 0;
-    private PlayerStateList pState;
     private bool grounded;
 
     [Header("WallJump Settings")]
@@ -64,16 +66,30 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private float recoilYSpeed;
     private int stopXRecoil, stopYRecoil;
 
+    [Header("Health Settings")]
+    public int currentHealth;
+    public int maxHealth;
+    private SpriteRenderer sr;
+    [SerializeField] private float blinkSpeed;
+    [SerializeField] private GameObject blood;
+    public delegate void OnHealthChangedDelegate();
+    [HideInInspector] public OnHealthChangedDelegate onHealthChangedCallback;
+    private bool restoreTime;
+    private float restoreTimeSpeed;
+
     private BoxCollider2D boxCollider;
     private Rigidbody2D rb;
     private Animator animation;
 
     private void Awake()
     {
-        if (instance != null)
+        if (instance != null && instance != this)
         {
-            instance = this;
+            Destroy(gameObject);
         }
+        else
+            instance = this;
+
         grounded = true;
         rb = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
@@ -82,6 +98,8 @@ public class PlayerManager : MonoBehaviour
         gravity = rb.gravityScale;
         player = ReInput.players.GetPlayer(playerID);
         pState.isWallJumping = false;
+        CurrentHealth = maxHealth;
+        sr = GetComponent<SpriteRenderer>();
     }
 
     void Update()
@@ -96,7 +114,6 @@ public class PlayerManager : MonoBehaviour
             WallSlide();
             WallJump();
         }
-        if (pState.isDashing) return; // empêche d'autres inputs d'interrompre le dash
         if (!pState.isWallJumping)
         {
             if(!Walled())
@@ -105,6 +122,14 @@ public class PlayerManager : MonoBehaviour
             Jump();
         }
         Attack();
+        Recoil();
+        RestoreTimeScale();
+        IEFrames();
+    }
+
+    private void FixedUpdate()
+    {
+        if (pState.isDashing) return; // empêche d'autres inputs d'interrompre le dash
         Recoil();
     }
 
@@ -423,5 +448,86 @@ public class PlayerManager : MonoBehaviour
     {
         stopYRecoil = 0;
         pState.isRecoilingY = false;
+    }
+
+    //Health :
+
+    public int CurrentHealth
+    {
+        get { return currentHealth;  }
+        set
+        {
+            if(currentHealth!= value)
+            {
+                currentHealth = Mathf.Clamp(value, 0, maxHealth);
+                if (onHealthChangedCallback != null)
+                {
+                    onHealthChangedCallback.Invoke();
+                }
+            }
+        }
+    }
+    public void TakeDamage(float _damage)
+    {
+        CurrentHealth -= Mathf.RoundToInt(_damage);
+        if (CurrentHealth > 0)
+        {
+            StartCoroutine(Invincibility());
+            animation.SetTrigger("TakeDamage");
+        }
+        else
+        {
+            animation.SetTrigger("Die");
+        }
+    }
+    
+    private IEnumerator Invincibility()
+    {
+        pState.isInvincible = true;
+        GameObject _bloodParticles = Instantiate(blood, transform.position, Quaternion.identity);
+        Destroy(_bloodParticles, 1.0f);
+        yield return new WaitForSeconds(1f);
+        pState.isInvincible = false;
+    }
+    // Blinking :
+    private void IEFrames()
+    {
+        sr.material.color = pState.isInvincible ? Color.Lerp(Color.white, Color.black, Mathf.PingPong(Time.deltaTime * blinkSpeed, 1.0f)) : Color.white;
+    }
+
+    //Time :
+    public void StopTimeOnHit(float _newTimeScale, int _restoreSpeed, float _delay)
+    {
+        restoreTimeSpeed = _restoreSpeed;
+        Time.timeScale = _newTimeScale;
+        if (_delay > 0)
+        {
+            StopCoroutine(UnpauseTime(_delay));
+            StartCoroutine(UnpauseTime(_delay));
+        }
+        else
+            restoreTime = true;
+    }
+
+    IEnumerator UnpauseTime(float _delay)
+    {
+        yield return new WaitForSecondsRealtime(_delay);
+        restoreTime = true;
+    }
+
+    private void RestoreTimeScale()
+    {
+        if (restoreTime)
+        {
+            if(Time.timeScale < 1)
+            {
+                Time.timeScale += Time.unscaledDeltaTime * restoreTimeSpeed;
+            }
+            else
+            {
+                Time.timeScale = 1;
+                restoreTime = false;
+            }
+        }
     }
 }

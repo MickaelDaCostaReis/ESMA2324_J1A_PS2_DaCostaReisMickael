@@ -16,9 +16,15 @@ public class PoliceMan : Enemy
     protected override void Update()
     {
         base.Update();
+        // suivre le joueur :
+        if (!isRecoiling)
+        {
+            transform.position = Vector2.MoveTowards
+                (transform.position, new Vector2(PlayerManager.instance.transform.position.x, transform.position.y), speed * Time.deltaTime);
+        }
     }
 
-    protected override void EnemyHit(float _damadeDone, Vector2 _hitDirection, float _hitForce)
+    public override void EnemyHit(float _damadeDone, Vector2 _hitDirection, float _hitForce)
     {
         base.EnemyHit(_damadeDone, _hitDirection, _hitForce);
     }
