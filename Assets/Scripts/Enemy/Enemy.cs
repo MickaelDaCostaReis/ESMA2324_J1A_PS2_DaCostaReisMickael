@@ -15,7 +15,7 @@ public class Enemy : MonoBehaviour
 
     protected float recoilTimer;
     protected Rigidbody2D rb;
-    protected virtual void Awake()
+    protected virtual void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         player = PlayerManager.instance;
@@ -53,6 +53,8 @@ public class Enemy : MonoBehaviour
     protected virtual void Attack()
     {
         player.TakeDamage(damage);
+        player.pState.isRecoilingX = true;
+        player.pState.isRecoilingY = true;
     }
 
     protected void OnTriggerStay2D(Collider2D collision)

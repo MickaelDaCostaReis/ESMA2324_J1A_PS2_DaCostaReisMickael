@@ -37,8 +37,8 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] LayerMask wallLayer;
     [SerializeField] private float wallJumpingDuration;
     [SerializeField] private Vector2 wallJumpingPower;
+    [SerializeField] private bool wallJumpingPowerUp;
     private float wallJumpingDirection;
-    private bool wallJumpingPowerUp;
 
     [Header("Dash Settings")]
     [SerializeField] private float DashSpeed;
@@ -100,15 +100,19 @@ public class PlayerManager : MonoBehaviour
         pState.isWallJumping = false;
         CurrentHealth = maxHealth;
         sr = GetComponent<SpriteRenderer>();
+        DontDestroyOnLoad(gameObject);
     }
 
     void Update()
     {
+        if (pState.isInCutScene) return;
         StartDash();
         grounded = IsGrounded();    //Fonctionne mieux ainsi, ne s'actualisait pas correctement
         UpdateJumpVariables();
         GetInputs();
         DashReset();
+        if (pState.isDashing) return; // empêche d'autres inputs d'interrompre le dash
+
         if (wallJumpingPowerUp)
         {
             WallSlide();
@@ -122,14 +126,12 @@ public class PlayerManager : MonoBehaviour
             Jump();
         }
         Attack();
-        Recoil();
         RestoreTimeScale();
         IEFrames();
     }
 
     private void FixedUpdate()
     {
-        if (pState.isDashing) return; // empêche d'autres inputs d'interrompre le dash
         Recoil();
     }
 
@@ -153,8 +155,7 @@ public class PlayerManager : MonoBehaviour
     // vrai si le joueur touche le sol, faux sinon
     private bool IsGrounded()
     {
-        RaycastHit2D raycastHit = Physics2D.BoxCast(boxCollider.bounds.center, boxCollider.bounds.size, 0, Vector2.down, 0.1f, groundLayer);
-        return raycastHit.collider != null;
+         return Physics2D.BoxCast(boxCollider.bounds.center, boxCollider.bounds.size, 0, Vector2.down, 0.1f, groundLayer);
     }
 
     //WALL JUMP
@@ -189,6 +190,7 @@ public class PlayerManager : MonoBehaviour
         {
             pState.isWallJumping = true;
             rb.velocity = new Vector2(wallJumpingDirection * wallJumpingPower.x, wallJumpingPower.y);
+            //reset des capacités de mouvement
             canDash = true;
             airJumpsCounter = 0;
             //Tourne le character sans movement input
@@ -235,28 +237,26 @@ public class PlayerManager : MonoBehaviour
     private void Jump()
     {
         //stop la montée au relachement de la touche de saut
-        if (releaseJump && rb.velocity.y>0)
+        if (releaseJump && rb.velocity.y>3)
         {
             rb.velocity = new Vector2(rb.velocity.x, 0);
             pState.isJumping = false;
         }
 
-        if (!pState.isJumping)
+        //Saute
+        if (jumpBufferCounter > 0 && coyoteTimeCounter > 0 && !pState.isJumping)
         {
-            //Saute
-            if (jumpBufferCounter > 0 && coyoteTimeCounter > 0)
-            {
-                rb.velocity = new Vector2(rb.velocity.x, jumpingPower);
-                pState.isJumping = true;
-            }
-            else if(!grounded && airJumpsCounter < maxAirJumps && jump)
-            {
-                pState.isJumping = true;
-                airJumpsCounter++;
-                rb.velocity = new Vector2(rb.velocity.x, jumpingPower);
-            }
+            rb.velocity = new Vector2(rb.velocity.x, jumpingPower);
+            pState.isJumping = true;
+        }
+        else if(!grounded && airJumpsCounter < maxAirJumps && jump)
+        {
+            pState.isJumping = true;
+            airJumpsCounter++;
+            rb.velocity = new Vector2(rb.velocity.x, jumpingPower);
         }
         
+        animation.SetBool("Jump", !grounded);
     }
 
     private void UpdateJumpVariables()
@@ -313,7 +313,8 @@ public class PlayerManager : MonoBehaviour
         pState.isDashing = true;
         //animation.SetTrigger("Dashing");
         rb.gravityScale = 0;
-        rb.velocity = new Vector2(transform.localScale.x * DashSpeed, 0);
+        int _direction = pState.isLookingRight ? 1 : -1;
+        rb.velocity = new Vector2(_direction * DashSpeed, 0);
         yield return new WaitForSeconds(DashTime);
         rb.gravityScale = gravity;
         pState.isDashing = false;
@@ -529,5 +530,21 @@ public class PlayerManager : MonoBehaviour
                 restoreTime = false;
             }
         }
+    }
+
+    public IEnumerator WalkIntoNewScene(Vector2 _exitDirection, float _delay)
+    {
+        if(_exitDirection.y > 0)
+        {
+            rb.velocity = jumpingPower * _exitDirection;
+        }
+        if (_exitDirection.x != 0)
+        {
+            horizontal = _exitDirection.x > 0 ? 1 : -1;
+            Move();
+        }
+        Flip();
+        yield return new WaitForSeconds(_delay);
+        pState.isInCutScene = false;
     }
 }

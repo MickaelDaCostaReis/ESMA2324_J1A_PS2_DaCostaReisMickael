@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class PlayerStateList : MonoBehaviour
 {
-    public bool isJumping;
-    public bool isDashing;
+    public bool isJumping = false;
+    public bool isDashing = false;
     public bool isRunning;
     public bool isWallSliding;
     public bool isWallJumping;
@@ -13,4 +13,5 @@ public class PlayerStateList : MonoBehaviour
     public bool isRecoilingX;
     public bool isRecoilingY;
     public bool isInvincible;
+    public bool isInCutScene = false;
 }

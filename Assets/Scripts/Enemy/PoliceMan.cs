@@ -4,14 +4,12 @@ using UnityEngine;
 
 public class PoliceMan : Enemy
 {
-    private void Start()
+    protected override void Start()
     {
+        base.Start();
         rb.gravityScale = 2f;
     }
-    protected override void Awake()
-    {
-        base.Awake();
-    }
+    
 
     protected override void Update()
     {
