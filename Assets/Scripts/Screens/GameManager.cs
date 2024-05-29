@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager instance { get; private set; }
+    public static GameManager instance;
 
     public string transitionFromScene;
     private void Awake()
     {
-        if(instance!=null && instance!= this)
+        if(instance!= null && instance!= this)
         {
             Destroy(gameObject);
         }

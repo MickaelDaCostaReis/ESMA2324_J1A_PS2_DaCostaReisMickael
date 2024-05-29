@@ -4,9 +4,25 @@ using UnityEngine;
 
 public class Cam : MonoBehaviour
 {
+    public static Cam instance;
+
     [SerializeField] private Transform player;
     [SerializeField] private float offsetx, offsety, camspeed;
     private float travelling = 0;
+
+    private void Awake()
+    {
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            instance = this;
+        }
+        DontDestroyOnLoad(gameObject);
+    }
+
 
     void Update()
     {

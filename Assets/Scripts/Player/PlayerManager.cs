@@ -70,12 +70,12 @@ public class PlayerManager : MonoBehaviour
     public int currentHealth;
     public int maxHealth;
     private SpriteRenderer sr;
-    [SerializeField] private float blinkSpeed;
     [SerializeField] private GameObject blood;
     public delegate void OnHealthChangedDelegate();
     [HideInInspector] public OnHealthChangedDelegate onHealthChangedCallback;
     private bool restoreTime;
     private float restoreTimeSpeed;
+    private bool canBlink = true;
 
     private BoxCollider2D boxCollider;
     private Rigidbody2D rb;
@@ -88,8 +88,11 @@ public class PlayerManager : MonoBehaviour
             Destroy(gameObject);
         }
         else
+        {
             instance = this;
+        }
 
+        DontDestroyOnLoad(gameObject);
         grounded = true;
         rb = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
@@ -100,19 +103,18 @@ public class PlayerManager : MonoBehaviour
         pState.isWallJumping = false;
         CurrentHealth = maxHealth;
         sr = GetComponent<SpriteRenderer>();
-        DontDestroyOnLoad(gameObject);
     }
 
     void Update()
     {
         if (pState.isInCutScene) return;
-        StartDash();
-        grounded = IsGrounded();    //Fonctionne mieux ainsi, ne s'actualisait pas correctement
         UpdateJumpVariables();
         GetInputs();
-        DashReset();
+        grounded = IsGrounded();    //Fonctionne mieux ainsi, ne s'actualisait pas correctement
         if (pState.isDashing) return; // empêche d'autres inputs d'interrompre le dash
-
+        RestoreTimeScale();         // Restaure le paramètre par défaut du TimeScale
+        IEFrames();                 // Personnage clignotte pour indiquer l'invincibilité
+        DashReset();
         if (wallJumpingPowerUp)
         {
             WallSlide();
@@ -125,13 +127,13 @@ public class PlayerManager : MonoBehaviour
             Flip();
             Jump();
         }
+        StartDash();
         Attack();
-        RestoreTimeScale();
-        IEFrames();
     }
 
     private void FixedUpdate()
     {
+        if (pState.isDashing || pState.isInCutScene) return;
         Recoil();
     }
 
@@ -218,13 +220,13 @@ public class PlayerManager : MonoBehaviour
     //Inverse le scale du sprite, flip le joueur et ses particules 
     private void Flip()
     {
-        if (horizontal > 0.01f && !pState.isLookingRight)
+        if (horizontal > 0.01f)
         {
             runningParticles.transform.localScale =new Vector3(0.5f, 0.5f, 0.5f);    //Particles
             transform.localScale = Vector3.one;                                      //Character
             pState.isLookingRight = true;
         }        
-        else if (horizontal < -0.01f && pState.isLookingRight)
+        else if (horizontal < -0.01f)
         {
             runningParticles.transform.localScale = new Vector3(-0.5f, 0.5f, 0.5f);
             transform.localScale = new Vector3(-1, 1, 1);
@@ -491,9 +493,27 @@ public class PlayerManager : MonoBehaviour
         pState.isInvincible = false;
     }
     // Blinking :
-    private void IEFrames()
+
+    IEnumerator Flash()
     {
-        sr.material.color = pState.isInvincible ? Color.Lerp(Color.white, Color.black, Mathf.PingPong(Time.deltaTime * blinkSpeed, 1.0f)) : Color.white;
+        sr.enabled = !sr.enabled;
+        canBlink = false;
+        yield return new WaitForSeconds(0.1f);
+        canBlink = true;
+    }
+    void IEFrames()
+    {
+        if (pState.isInvincible && !pState.isInCutScene)
+        {
+            if (Time.timeScale > 0.2 && canBlink)
+            {
+                StartCoroutine(Flash());
+            }
+        }
+        else
+        {
+            sr.enabled = true;
+        }
     }
 
     //Time :
@@ -534,17 +554,19 @@ public class PlayerManager : MonoBehaviour
 
     public IEnumerator WalkIntoNewScene(Vector2 _exitDirection, float _delay)
     {
-        if(_exitDirection.y > 0)
+        pState.isInvincible = true; //Permet d'empêcher un input d'annuler la transition
+        if (_exitDirection.y > 0)        // fait sauter le personnage pour une transition verticale
         {
             rb.velocity = jumpingPower * _exitDirection;
         }
-        if (_exitDirection.x != 0)
+        if (_exitDirection.x != 0)// Bouge le personnage dans une direction; transition horizontale
         {
             horizontal = _exitDirection.x > 0 ? 1 : -1;
             Move();
         }
         Flip();
         yield return new WaitForSeconds(_delay);
+        pState.isInvincible = false;
         pState.isInCutScene = false;
     }
 }
