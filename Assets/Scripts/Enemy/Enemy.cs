@@ -57,7 +57,10 @@ public class Enemy : MonoBehaviour
         if (collision.CompareTag("Player") && !player.pState.isInvincible)
         {
             Attack();
-            player.StopTimeOnHit(0,5,0.5f);
+            if (PlayerManager.instance.pState.isAlive)
+            {
+                player.StopTimeOnHit(0, 5, 0.5f);
+            }
         }
     }
 }

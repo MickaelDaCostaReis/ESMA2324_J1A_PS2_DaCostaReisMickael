@@ -7,7 +7,7 @@ public class PlayerManager : MonoBehaviour
 {
     public static PlayerManager instance;
     // Commandes :
-    private Player player;
+    [HideInInspector] public Player player { get; private set; }
     private int playerID;
     //Etat :
     [HideInInspector] public PlayerStateList pState;
@@ -78,7 +78,7 @@ public class PlayerManager : MonoBehaviour
     private bool canBlink = true;
 
     private BoxCollider2D boxCollider;
-    private Rigidbody2D rb;
+    [HideInInspector] public Rigidbody2D rb;
     private Animator animation;
 
     private void Awake()
@@ -101,6 +101,7 @@ public class PlayerManager : MonoBehaviour
         gravity = rb.gravityScale;
         player = ReInput.players.GetPlayer(playerID);
         pState.isWallJumping = false;
+        pState.isAlive = true;
         CurrentHealth = maxHealth;
         sr = GetComponent<SpriteRenderer>();
     }
@@ -109,26 +110,32 @@ public class PlayerManager : MonoBehaviour
     {
         if (pState.isInCutScene) return;
         UpdateJumpVariables();
-        GetInputs();
-        grounded = IsGrounded();    //Fonctionne mieux ainsi, ne s'actualisait pas correctement
-        if (pState.isDashing) return; // empêche d'autres inputs d'interrompre le dash
-        RestoreTimeScale();         // Restaure le paramètre par défaut du TimeScale
-        IEFrames();                 // Personnage clignotte pour indiquer l'invincibilité
-        DashReset();
-        if (wallJumpingPowerUp)
+        if (pState.isAlive)
         {
-            WallSlide();
-            WallJump();
-        }
-        if (!pState.isWallJumping)
+            GetInputs();
+            grounded = IsGrounded();    //Fonctionne mieux ainsi, ne s'actualisait pas correctement
+        }    
+        if (pState.isDashing) return;   // empêche d'autres inputs d'interrompre le dash
+        if (pState.isAlive)
         {
-            if(!Walled())
-                Move();
-            Flip();
-            Jump();
+            RestoreTimeScale();             // Restaure le paramètre par défaut du TimeScale
+                    IEFrames();                     // Personnage clignotte pour indiquer l'invincibilité
+                    DashReset();
+                    if (wallJumpingPowerUp)
+                    {
+                        WallSlide();
+                        WallJump();
+                    }
+                    if (!pState.isWallJumping)
+                    {
+                        if(!Walled())
+                            Move();
+                        Flip();
+                        Jump();
+                    }
+                    StartDash();
+                    Attack();
         }
-        StartDash();
-        Attack();
     }
 
     private void FixedUpdate()
@@ -478,16 +485,20 @@ public class PlayerManager : MonoBehaviour
     }
     public void TakeDamage(float _damage)
     {
-        CurrentHealth -= Mathf.RoundToInt(_damage);
-        if (CurrentHealth > 0)
+        if (pState.isAlive)
         {
-            StartCoroutine(Invincibility());
-            animation.SetTrigger("TakeDamage");
+            CurrentHealth -= Mathf.RoundToInt(_damage);
+            if (CurrentHealth <= 0)
+            {
+                CurrentHealth = 0;
+                StartCoroutine(Death());
+            }
+            else
+            {
+                StartCoroutine(Invincibility());
+            }
         }
-        else
-        {
-            animation.SetTrigger("Die");
-        }
+        
     }
     
     private IEnumerator Invincibility()
@@ -575,5 +586,16 @@ public class PlayerManager : MonoBehaviour
         yield return new WaitForSeconds(_delay);
         pState.isInvincible = false;
         pState.isInCutScene = false;
+    }
+
+    IEnumerator Death()
+    {
+        pState.isAlive = false;
+        Time.timeScale = 1;
+        GameObject _bloodParticles = Instantiate(blood, transform.position, Quaternion.identity);
+        Destroy(_bloodParticles, 1.0f);
+        animation.SetTrigger("Die");
+        yield return new WaitForSeconds(0.8f);
+        StartCoroutine(UIManager.instance.ActivateDeathScreen());
     }
 }

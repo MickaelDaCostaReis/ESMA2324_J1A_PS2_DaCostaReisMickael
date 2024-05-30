@@ -14,4 +14,5 @@ public class PlayerStateList : MonoBehaviour
     public bool isRecoilingY;
     public bool isInvincible;
     public bool isInCutScene = false;
+    public bool isAlive;
 }

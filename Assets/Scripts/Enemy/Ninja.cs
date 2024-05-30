@@ -22,6 +22,10 @@ public class Ninja : Enemy
     {
 
         base.Update();
+        if (!PlayerManager.instance.pState.isAlive)
+        {
+            //ChangeState(EnemyStates.Ninja_Idle);
+        }
         //permet d'éviter un changement de trajectoire/ de rendre l'attaque plus prévisible ; se déclenche sur 0.5 seconde au tout début de la coroutine DashHandler
         if (canUpdatePlayerPos)
         {
@@ -52,7 +56,10 @@ public class Ninja : Enemy
         if (collision.CompareTag("Player") && !player.pState.isInvincible)
         {
             Attack();
-            player.StopTimeOnHit(0, 5, 0.5f);
+            if (PlayerManager.instance.pState.isAlive)
+            {
+                player.StopTimeOnHit(0, 5, 0.5f);
+            }
         }
     }
     IEnumerator DashHandler()
