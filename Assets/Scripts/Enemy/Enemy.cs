@@ -34,11 +34,6 @@ public class Enemy : MonoBehaviour
                 recoilTimer = 0;
             }
         }
-        if (!isRecoiling)
-        {
-            transform.position = Vector2.MoveTowards
-                (transform.position, new Vector2(PlayerManager.instance.transform.position.x, transform.position.y), speed * Time.deltaTime);
-        }
     }
 
     public virtual void EnemyHit(float _damadeDone, Vector2 _hitDirection, float _hitForce)
@@ -57,7 +52,7 @@ public class Enemy : MonoBehaviour
         player.pState.isRecoilingY = true;
     }
 
-    protected void OnTriggerStay2D(Collider2D collision)
+    protected virtual void OnTriggerStay2D(Collider2D collision)
     {
         if (collision.CompareTag("Player") && !player.pState.isInvincible)
         {

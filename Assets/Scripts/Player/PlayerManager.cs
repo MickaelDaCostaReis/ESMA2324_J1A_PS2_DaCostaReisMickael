@@ -92,7 +92,7 @@ public class PlayerManager : MonoBehaviour
             instance = this;
         }
 
-        DontDestroyOnLoad(gameObject);
+        DontDestroyOnLoad(instance);
         grounded = true;
         rb = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
@@ -161,7 +161,7 @@ public class PlayerManager : MonoBehaviour
     }
 
     //WALL JUMP
-
+    #region WallJump
     private bool Walled()
     {
         return Physics2D.OverlapCircle(wallCheck.position, 0.2f, wallLayer);
@@ -216,7 +216,7 @@ public class PlayerManager : MonoBehaviour
     {
         pState.isWallJumping = false;
     }
-
+    #endregion
     //Inverse le scale du sprite, flip le joueur et ses particules 
     private void Flip()
     {
@@ -235,7 +235,7 @@ public class PlayerManager : MonoBehaviour
     }
 
     //JUMP
-
+    #region Jump
     private void Jump()
     {
         //stop la montée au relachement de la touche de saut
@@ -280,8 +280,9 @@ public class PlayerManager : MonoBehaviour
         else
             jumpBufferCounter--;
     }
-
+    #endregion
     // ELEVATOR :
+    #region Elevator
     //Le joueur passe en parent pour un mouvement plus lisse
     private void OnCollisionEnter2D(Collision2D collision)
     {
@@ -298,8 +299,9 @@ public class PlayerManager : MonoBehaviour
             transform.SetParent(null);
         }
     }
-
+    #endregion
     // DASH :
+    #region Dash
     void StartDash()
     {
         if(dashPowerUp && player.GetButtonDown("Dash") && canDash && !pState.isDashing)
@@ -329,6 +331,7 @@ public class PlayerManager : MonoBehaviour
             canDash = true;
     }
 
+    #endregion
     //Particules :
 
     IEnumerator StopRunning()
@@ -338,6 +341,7 @@ public class PlayerManager : MonoBehaviour
     }
 
     //Attaques :
+    #region Attaques
     private void Attack()
     {
         timeSinceATK += Time.deltaTime;
@@ -384,8 +388,9 @@ public class PlayerManager : MonoBehaviour
         Gizmos.DrawWireCube(downAtkTransform.position, downAtkArea);
     }
 
-
+    #endregion
     //Recul :
+    #region Recul
     private void Recoil()
     {
         //Commence le Recul :
@@ -452,9 +457,10 @@ public class PlayerManager : MonoBehaviour
         stopYRecoil = 0;
         pState.isRecoilingY = false;
     }
+    #endregion
 
     //Health :
-
+    #region Vie
     public int CurrentHealth
     {
         get { return currentHealth;  }
@@ -551,6 +557,7 @@ public class PlayerManager : MonoBehaviour
             }
         }
     }
+    #endregion
 
     public IEnumerator WalkIntoNewScene(Vector2 _exitDirection, float _delay)
     {
