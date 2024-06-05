@@ -25,7 +25,7 @@ public class Elevator : MonoBehaviour
     //Initialise la position de l'ascenseur et sa direction de mouvement
     void StartElevator()
     {
-        if(Vector2.Distance(player.position,elevatorSwitch.position)<1f && playerControl.GetButton("Interact"))
+        if(Vector2.Distance(player.position,elevatorSwitch.position)<2f && playerControl.GetButton("Interact"))
         {
             if (transform.position.y <= down.position.y)
             {

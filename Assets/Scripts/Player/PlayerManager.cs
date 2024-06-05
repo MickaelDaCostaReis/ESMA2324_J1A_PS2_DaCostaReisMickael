@@ -34,6 +34,9 @@ public class PlayerManager : MonoBehaviour
     [Header("WallJump Settings")]
     [SerializeField] private float wallSlindingSpeed;
     [SerializeField] private Transform wallCheck;
+    [SerializeField] private Transform wallCheck1;
+    [SerializeField] private Transform wallCheck2;
+    [SerializeField] private Transform wallCheck3;
     [SerializeField] LayerMask wallLayer;
     [SerializeField] private float wallJumpingDuration;
     [SerializeField] private Vector2 wallJumpingPower;
@@ -147,8 +150,11 @@ public class PlayerManager : MonoBehaviour
     private void Move()
     {
         rb.velocity = new Vector2(horizontal * speed, rb.velocity.y);
+        animation.SetBool("Walk", horizontal!=0 && grounded);
         if (rb.velocity.x != 0 && grounded)
+        {
             runningParticles.SetActive(true);
+        }
         else
             StartCoroutine(StopRunning());
     }
@@ -171,7 +177,7 @@ public class PlayerManager : MonoBehaviour
     #region WallJump
     private bool Walled()
     {
-        return Physics2D.OverlapCircle(wallCheck.position, 0.2f, wallLayer);
+        return (Physics2D.OverlapCircle(wallCheck.position, 0.2f, wallLayer) || Physics2D.OverlapCircle(wallCheck1.position, 0.2f, wallLayer) || Physics2D.OverlapCircle(wallCheck2.position, 0.2f, wallLayer) || Physics2D.OverlapCircle(wallCheck3.position, 0.2f, wallLayer)) ;
     }
     
     private void WallSlide()
@@ -241,7 +247,7 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-    //JUMP
+    // CLASSIC JUMP
     #region Jump
     private void Jump()
     {
@@ -322,7 +328,7 @@ public class PlayerManager : MonoBehaviour
         canDash = false;
         dashCoolDownOK = false;
         pState.isDashing = true;
-        //animation.SetTrigger("Dashing");
+        animation.SetTrigger("Dash");
         rb.gravityScale = 0;
         int _direction = pState.isLookingRight ? 1 : -1;
         rb.velocity = new Vector2(_direction * DashSpeed, 0);
@@ -355,7 +361,7 @@ public class PlayerManager : MonoBehaviour
         if(attack && timeSinceATK >= atkCoolDown)
         {
             timeSinceATK = 0;
-            //animation.SetTrigger("Attack");
+            animation.SetTrigger("Attack");
             if (vertical == 0 || vertical < 0 && grounded)
             {
                 Hit(sideAtkTransform, sideAtkArea, ref pState.isRecoilingX,recoilXSpeed);
