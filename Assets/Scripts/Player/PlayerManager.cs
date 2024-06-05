@@ -223,6 +223,7 @@ public class PlayerManager : MonoBehaviour
             }
             Invoke(nameof(StopWallJumping), wallJumpingDuration);
         }
+        animation.SetBool("WallSlide", pState.isWallSliding);
     }
 
     private void StopWallJumping()
@@ -361,17 +362,20 @@ public class PlayerManager : MonoBehaviour
         if(attack && timeSinceATK >= atkCoolDown)
         {
             timeSinceATK = 0;
-            animation.SetTrigger("Attack");
+            
             if (vertical == 0 || vertical < 0 && grounded)
             {
+                animation.SetTrigger("Attack");
                 Hit(sideAtkTransform, sideAtkArea, ref pState.isRecoilingX,recoilXSpeed);
             }
             else if (vertical > 0)
             {
+                animation.SetTrigger("AttackUp");
                 Hit(upAtkTransform, upAtkArea, ref pState.isRecoilingY, recoilYSpeed);
             }
             else if (vertical < 0 && !grounded)
             {
+                animation.SetTrigger("AttackDown");
                 Hit(downAtkTransform, downAtkArea, ref pState.isRecoilingY, recoilYSpeed);
             }
         }
@@ -598,6 +602,7 @@ public class PlayerManager : MonoBehaviour
     {
         pState.isAlive = false;
         Time.timeScale = 1;
+
         GameObject _bloodParticles = Instantiate(blood, transform.position, Quaternion.identity);
         Destroy(_bloodParticles, 1.0f);
         animation.SetTrigger("Die");

@@ -54,13 +54,10 @@ public class Enemy : MonoBehaviour
 
     protected virtual void OnTriggerStay2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player") && !player.pState.isInvincible)
+        if (collision.CompareTag("Player") && !player.pState.isInvincible && PlayerManager.instance.pState.isAlive)
         {
             Attack();
-            if (PlayerManager.instance.pState.isAlive)
-            {
-                player.StopTimeOnHit(0, 5, 0.5f);
-            }
+            player.StopTimeOnHit(0, 5, 0.5f);            
         }
     }
 }
