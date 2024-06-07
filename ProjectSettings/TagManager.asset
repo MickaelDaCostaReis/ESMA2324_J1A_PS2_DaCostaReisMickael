@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Elevator
   - Enemy
+  - DeadlyTrap
   layers:
   - Default
   - TransparentFX

@@ -11,6 +11,7 @@ public class CheckPoint : MonoBehaviour
         if(collision.CompareTag("Player")&& PlayerManager.instance.player.GetButtonDown("Interact"))
         {
             interacted = true;
+            Debug.Log("Interacted !");
         }
     }
 }

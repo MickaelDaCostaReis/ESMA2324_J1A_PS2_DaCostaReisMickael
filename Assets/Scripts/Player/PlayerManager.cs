@@ -40,14 +40,14 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] LayerMask wallLayer;
     [SerializeField] private float wallJumpingDuration;
     [SerializeField] private Vector2 wallJumpingPower;
-    [SerializeField] private bool wallJumpingPowerUp;
+    public bool wallJumpingPowerUp;
     private float wallJumpingDirection;
 
     [Header("Dash Settings")]
     [SerializeField] private float DashSpeed;
     [SerializeField] private float DashTime;
     [SerializeField] private float DashCoolDown;
-    [SerializeField] private bool dashPowerUp;
+    public bool dashPowerUp;
     private bool dashCoolDownOK;
     private bool canDash = true;
     private float gravity;
@@ -72,6 +72,8 @@ public class PlayerManager : MonoBehaviour
     [Header("Health Settings")]
     public int currentHealth;
     public int maxHealth;
+    [SerializeField] private int defaultMaxHealth;
+    private int totalMaxHealth = 10;
     private SpriteRenderer sr;
     [SerializeField] private GameObject blood;
     public delegate void OnHealthChangedDelegate();
@@ -105,7 +107,7 @@ public class PlayerManager : MonoBehaviour
         player = ReInput.players.GetPlayer(playerID);
         pState.isWallJumping = false;
         pState.isAlive = true;
-        CurrentHealth = maxHealth;
+        CurrentHealth = maxHealth = defaultMaxHealth;
         sr = GetComponent<SpriteRenderer>();
     }
 
@@ -122,22 +124,22 @@ public class PlayerManager : MonoBehaviour
         if (pState.isAlive)
         {
             RestoreTimeScale();             // Restaure le paramètre par défaut du TimeScale
-                    IEFrames();                     // Personnage clignotte pour indiquer l'invincibilité
-                    DashReset();
-                    if (wallJumpingPowerUp)
-                    {
-                        WallSlide();
-                        WallJump();
-                    }
-                    if (!pState.isWallJumping)
-                    {
-                        if(!Walled())
-                            Move();
-                        Flip();
-                        Jump();
-                    }
-                    StartDash();
-                    Attack();
+            IEFrames();                     // Personnage clignotte pour indiquer l'invincibilité
+            DashReset();
+            if (wallJumpingPowerUp)
+            {
+                WallSlide();
+                WallJump();
+            }
+            if (!pState.isWallJumping)
+            {
+                if(!Walled())
+                    Move();
+                Flip();
+                Jump();
+            }
+            StartDash();
+            Attack();
         }
     }
 
@@ -505,6 +507,7 @@ public class PlayerManager : MonoBehaviour
             }
             else
             {
+                animation.SetTrigger("Hurt");
                 StartCoroutine(Invincibility());
             }
         }
@@ -519,7 +522,7 @@ public class PlayerManager : MonoBehaviour
         yield return new WaitForSeconds(1f);
         pState.isInvincible = false;
     }
-    // Blinking :
+    // Blinking : (obsolète)
 
     IEnumerator Flash()
     {
@@ -606,7 +609,18 @@ public class PlayerManager : MonoBehaviour
         GameObject _bloodParticles = Instantiate(blood, transform.position, Quaternion.identity);
         Destroy(_bloodParticles, 1.0f);
         animation.SetTrigger("Die");
+        maxHealth--;
         yield return new WaitForSeconds(0.8f);
         StartCoroutine(UIManager.instance.ActivateDeathScreen());
+    }
+
+    public void Respawn()
+    {
+        if(!pState.isAlive)
+        {
+            pState.isAlive=true;
+            CurrentHealth = maxHealth;
+            animation.Play("Idle_Awen");
+        }
     }
 }

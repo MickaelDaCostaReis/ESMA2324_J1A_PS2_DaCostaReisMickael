@@ -11,7 +11,6 @@ public class Ninja : Enemy
     [SerializeField] private Vector2 jumpPos;
     [SerializeField] private float dashRange;
     private Vector3 playerPos;
-    private bool playerIsRightSide;
     protected override void Start()
     {
         base.Start();
@@ -34,7 +33,7 @@ public class Ninja : Enemy
         float _distance = Vector3.Distance(playerPos, transform.position);
         int _direction = ((playerPos.x - transform.position.x) < 0) ? -1 : 1;
        
-        if (_distance <= dashRange && canDash)
+        if (_distance <= dashRange && canDash && PlayerManager.instance.pState.isAlive)
         {
             if (!isDashHandler)
             {
