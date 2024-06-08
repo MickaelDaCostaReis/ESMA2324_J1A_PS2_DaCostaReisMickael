@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEditor.Searcher.SearcherWindow.Alignment;
 
 public class Enemy : MonoBehaviour
 {
@@ -15,15 +16,22 @@ public class Enemy : MonoBehaviour
 
     protected float recoilTimer;
     protected Rigidbody2D rb;
+    protected Animator animator;
+    
     protected virtual void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        animator = GetComponent<Animator>();
         player = PlayerManager.instance;
     }
     protected virtual void Update()
     {
-        if(health<=0)
-            Destroy(gameObject);
+        if (GameManager.instance.gameIsPaused) return;
+        animator.SetBool("Hurt",isRecoiling);
+        if (health <= 0)
+        {
+            animator.SetTrigger("Die");
+        }
         if (isRecoiling)
         {
             if (recoilTimer < recoilLength)
@@ -47,6 +55,7 @@ public class Enemy : MonoBehaviour
 
     protected virtual void Attack()
     {
+        animator.SetTrigger("Attack");
         player.TakeDamage(damage);
         player.pState.isRecoilingX = true;
         player.pState.isRecoilingY = true;
@@ -57,7 +66,24 @@ public class Enemy : MonoBehaviour
         if (collision.CompareTag("Player") && !player.pState.isInvincible && PlayerManager.instance.pState.isAlive)
         {
             Attack();
-            player.StopTimeOnHit(0, 5, 0.5f);            
+            player.StopTimeOnHit(0, 5, 0.5f);
         }
+    }
+
+    protected virtual void Flip()
+    {
+        if (PlayerManager.instance.transform.position.x < transform.position.x)
+        {
+            transform.localScale = new Vector3(-1, 1, 1);
+        }
+        else
+        {
+            transform.localScale = Vector3.one;
+        }
+    }
+
+    protected void DestroyAfterDeath()
+    {
+        Destroy(gameObject);
     }
 }

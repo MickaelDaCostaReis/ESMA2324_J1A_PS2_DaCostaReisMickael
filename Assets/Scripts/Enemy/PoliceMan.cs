@@ -14,11 +14,17 @@ public class PoliceMan : Enemy
     protected override void Update()
     {
         base.Update();
+        Flip();
         // suivre le joueur :
         if (!isRecoiling)
         {
+            animator.SetBool("Walk",true);
             transform.position = Vector2.MoveTowards
                 (transform.position, new Vector2(PlayerManager.instance.transform.position.x, transform.position.y), speed * Time.deltaTime);
+        }
+        else
+        {
+            animator.SetBool("Walk", false);
         }
     }
 

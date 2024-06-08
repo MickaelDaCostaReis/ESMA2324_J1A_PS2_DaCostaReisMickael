@@ -54,4 +54,9 @@ public class SceneFader : MonoBehaviour
         yield return Fade(_fadeDirection);
         SceneManager.LoadScene(_levelToLoad);
     }
+
+    public void CallFadeAndLoadScene(string _sceneToLoad)
+    {
+        StartCoroutine(FadeAndLoadScene(FadeDirection.In, _sceneToLoad));
+    }
 }

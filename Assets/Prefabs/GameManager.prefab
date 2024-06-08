@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1321569091309238182}
   - component: {fileID: 2270853425903512214}
+  - component: {fileID: 8185066097500531898}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -45,3 +46,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   transitionFromScene: 
+  platformingRespawnPoint: {x: -23, y: 0}
+  playerRespawnPoint: {x: 0, y: 0}
+  checkPoint: {fileID: 0}
+  pauseMenu: {fileID: 0}
+  fadeTime: 0.2
+  gameIsPaused: 0
+--- !u!114 &8185066097500531898
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1217319715835579108}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 453674144b3eba747ae906b2f07b072e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

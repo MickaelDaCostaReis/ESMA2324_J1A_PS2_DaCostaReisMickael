@@ -21,7 +21,7 @@ public class PlayerManager : MonoBehaviour
     [Header("Jump Settings")]
     [SerializeField] private float coyoteTime;
     [SerializeField] private int jumpBufferFrames;
-    [SerializeField] private int maxAirJumps; //nombre de saut supp
+    public int maxAirJumps; //nombre de saut supp
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private float jumpingPower;
     private bool jump; //btn down
@@ -58,7 +58,7 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private Transform downAtkTransform;
     [SerializeField] private Vector2 sideAtkArea, upAtkArea, downAtkArea;
     [SerializeField] private LayerMask atkLayer;
-    [SerializeField] private float damage;
+    public float damage;
     private bool attack;
     private float atkCoolDown, timeSinceATK;
 
@@ -73,7 +73,8 @@ public class PlayerManager : MonoBehaviour
     public int currentHealth;
     public int maxHealth;
     [SerializeField] private int defaultMaxHealth;
-    private int totalMaxHealth = 10;
+    public int totalMaxHealth = 10;
+    public int heartShards;
     private SpriteRenderer sr;
     [SerializeField] private GameObject blood;
     public delegate void OnHealthChangedDelegate();
@@ -85,6 +86,8 @@ public class PlayerManager : MonoBehaviour
     private BoxCollider2D boxCollider;
     [HideInInspector] public Rigidbody2D rb;
     private Animator animation;
+    [SerializeField] GameObject[] descriptions;
+    bool openInventory;
 
     private void Awake()
     {
@@ -113,11 +116,13 @@ public class PlayerManager : MonoBehaviour
 
     void Update()
     {
+        if (GameManager.instance.gameIsPaused) return;
         if (pState.isInCutScene) return;
         UpdateJumpVariables();
         if (pState.isAlive)
         {
             GetInputs();
+            ToggleInventory();
             grounded = IsGrounded();    //Fonctionne mieux ainsi, ne s'actualisait pas correctement
         }    
         if (pState.isDashing) return;   // empêche d'autres inputs d'interrompre le dash
@@ -168,6 +173,7 @@ public class PlayerManager : MonoBehaviour
         releaseJump = player.GetButtonUp("Jump");
         jump = player.GetButtonDown("Jump");
         attack = player.GetButtonDown("Attack");
+        openInventory = player.GetButton("Inventory");
     }
     // vrai si le joueur touche le sol, faux sinon
     private bool IsGrounded()
@@ -621,6 +627,22 @@ public class PlayerManager : MonoBehaviour
             pState.isAlive=true;
             CurrentHealth = maxHealth;
             animation.Play("Idle_Awen");
+        }
+    }
+
+    void ToggleInventory()
+    {
+        if (openInventory)
+        {
+            UIManager.instance.inventory.SetActive(true);
+        }
+        else
+        {
+            for (int i = 0; i < descriptions.Length; i++)
+            {
+                descriptions[i].SetActive(false);
+            }
+            UIManager.instance.inventory.SetActive(false);
         }
     }
 }

@@ -7,6 +7,7 @@ public class UIManager : MonoBehaviour
     public static UIManager instance;
     public SceneFader sceneFader;
     [SerializeField] GameObject deathScreen;
+    public GameObject inventory;
     private void Awake()
     {
         if (instance != null && instance != this)

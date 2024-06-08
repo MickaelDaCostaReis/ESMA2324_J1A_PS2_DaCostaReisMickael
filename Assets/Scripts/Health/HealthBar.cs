@@ -14,8 +14,8 @@ public class HealthBar : MonoBehaviour
     private void Start()
     {
         player = PlayerManager.instance;
-        heartContainers = new GameObject[PlayerManager.instance.maxHealth];
-        hearts = new Image[PlayerManager.instance.maxHealth];
+        heartContainers = new GameObject[PlayerManager.instance.totalMaxHealth];
+        hearts = new Image[PlayerManager.instance.totalMaxHealth];
         player.onHealthChangedCallback += UpdateHealthBar;
         InstantianteHeartContainers();
         UpdateHealthBar();
@@ -58,7 +58,7 @@ public class HealthBar : MonoBehaviour
 
     private void InstantianteHeartContainers()
     {
-        for (int i = 0; i < player.maxHealth; i++)
+        for (int i = 0; i < player.totalMaxHealth; i++)
         {
             GameObject tmp = Instantiate(heartContainerPrefab);
             tmp.transform.SetParent(heartsParent, false);

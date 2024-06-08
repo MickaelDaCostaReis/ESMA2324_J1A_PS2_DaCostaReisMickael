@@ -11,6 +11,10 @@ public class GameManager : MonoBehaviour
     public Vector2 platformingRespawnPoint;
     public Vector2 playerRespawnPoint;
     [SerializeField] CheckPoint checkPoint;
+
+    [SerializeField] private FadeUI pauseMenu;
+    [SerializeField] private float fadeTime;
+    public bool gameIsPaused;
     private void Awake()
     {
         if(instance!= null && instance!= this)
@@ -47,5 +51,21 @@ public class GameManager : MonoBehaviour
         PlayerManager.instance.transform.position = playerRespawnPoint;
         StartCoroutine(UIManager.instance.DeactivateDeathScreen());
         PlayerManager.instance.Respawn();
+    }
+
+    private void Update()
+    {
+        if(PlayerManager.instance.player.GetButtonDown("PauseMenu") && !gameIsPaused)
+        {
+            pauseMenu.FadeUIIn(fadeTime);
+            Time.timeScale = 0f;
+            gameIsPaused = true;
+        }
+    }
+
+    public void UnpauseGame()
+    {
+        Time.timeScale = 1;
+        gameIsPaused = false;
     }
 }
