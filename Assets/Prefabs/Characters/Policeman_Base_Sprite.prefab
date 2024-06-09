@@ -1115,6 +1115,7 @@ MonoBehaviour:
   isRecoiling: 0
   speed: 5
   damage: 1
+  lootPrefab: {fileID: 9147727620832151177, guid: 4884a9e1e6b40a946af25de0aa0c90b2, type: 3}
 --- !u!4 &1230090100338139905 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -7226980053749782244, guid: 2eb5acb83005fb84cba64397928ef22a, type: 3}

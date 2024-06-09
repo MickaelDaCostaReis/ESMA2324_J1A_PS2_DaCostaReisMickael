@@ -55,7 +55,7 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if(PlayerManager.instance.player.GetButtonDown("PauseMenu") && !gameIsPaused)
+        if(PlayerManager.instance.player.GetButtonDown("PauseMenu") && !gameIsPaused && PlayerManager.instance.pState.isAlive)
         {
             pauseMenu.FadeUIIn(fadeTime);
             Time.timeScale = 0f;

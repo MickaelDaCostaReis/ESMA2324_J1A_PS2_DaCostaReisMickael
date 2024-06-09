@@ -17,14 +17,14 @@ public class Ninja : Enemy
         rb.gravityScale = 2f;
     }
 
+    protected override void DropLoot()
+    {
+        base.DropLoot();
+    }
+
     protected override void Update()
     {
-
         base.Update();
-        if (!PlayerManager.instance.pState.isAlive)
-        {
-            animator.Play("Idle");
-        }
         //permet d'éviter un changement de trajectoire/ de rendre l'attaque plus prévisible ; se déclenche sur 0.5 seconde au tout début de la coroutine DashHandler
         if (canUpdatePlayerPos)
         {
@@ -49,6 +49,8 @@ public class Ninja : Enemy
     {
         base.EnemyHit(_damadeDone, _hitDirection, _hitForce);
     }
+
+    
     IEnumerator DashHandler()
     {
         animator.SetTrigger("Dash");

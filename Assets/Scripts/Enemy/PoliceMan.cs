@@ -9,7 +9,12 @@ public class PoliceMan : Enemy
         base.Start();
         rb.gravityScale = 2f;
     }
-    
+
+    protected override void DropLoot()
+    {
+        base.DropLoot();
+        Debug.Log("loot dropped");
+    }
 
     protected override void Update()
     {

@@ -24,7 +24,6 @@ public class HeartShards : MonoBehaviour
         }
 
         fill.fillAmount=targetFillAmount;
-        Debug.Log(fill.fillAmount);
         if(fill.fillAmount == 1)
         {
             PlayerManager.instance.maxHealth++;

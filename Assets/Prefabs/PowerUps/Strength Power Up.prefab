@@ -1043,3 +1043,4 @@ MonoBehaviour:
   canvasUI: {fileID: 1385599439547369016}
   UITextMeshPro: {fileID: 5725905856127830659}
   circleCollider: {fileID: 1419223017672603098}
+  shardsPrefab: {fileID: 6177813801007414252, guid: b65579dee537bea4f87b743128655015, type: 3}

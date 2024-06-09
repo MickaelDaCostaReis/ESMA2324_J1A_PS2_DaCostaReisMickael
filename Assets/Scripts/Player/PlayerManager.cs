@@ -508,6 +508,7 @@ public class PlayerManager : MonoBehaviour
             CurrentHealth -= Mathf.RoundToInt(_damage);
             if (CurrentHealth <= 0)
             {
+                Time.timeScale = 1;
                 CurrentHealth = 0;
                 StartCoroutine(Death());
             }
@@ -611,12 +612,15 @@ public class PlayerManager : MonoBehaviour
     {
         pState.isAlive = false;
         Time.timeScale = 1;
-
+        Debug.Log(Time.timeScale);
         GameObject _bloodParticles = Instantiate(blood, transform.position, Quaternion.identity);
         Destroy(_bloodParticles, 1.0f);
         animation.SetTrigger("Die");
         maxHealth--;
-        yield return new WaitForSeconds(0.8f);
+        Debug.Log("maxhealth--");
+        Time.timeScale = 1;
+        yield return new WaitForSecondsRealtime(0.5f);
+        Time.timeScale = 1;
         StartCoroutine(UIManager.instance.ActivateDeathScreen());
     }
 

@@ -14,6 +14,9 @@ public class Enemy : MonoBehaviour
     [SerializeField] protected float speed;
     [SerializeField] protected float damage;
 
+    [SerializeField] GameObject lootPrefab;
+    protected bool hasDroppedLoot;
+
     protected float recoilTimer;
     protected Rigidbody2D rb;
     protected Animator animator;
@@ -24,12 +27,23 @@ public class Enemy : MonoBehaviour
         animator = GetComponent<Animator>();
         player = PlayerManager.instance;
     }
+
+    protected virtual void DropLoot()
+    {
+        Instantiate(lootPrefab, transform.position, Quaternion.identity);
+    }
+
     protected virtual void Update()
     {
         if (GameManager.instance.gameIsPaused) return;
         animator.SetBool("Hurt",isRecoiling);
         if (health <= 0)
         {
+            if(!hasDroppedLoot)
+            {
+                hasDroppedLoot = true;
+                DropLoot();
+            }
             animator.SetTrigger("Die");
         }
         if (isRecoiling)

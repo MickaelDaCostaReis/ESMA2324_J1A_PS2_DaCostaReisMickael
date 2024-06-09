@@ -24,6 +24,7 @@ public class UIManager : MonoBehaviour
 
     public IEnumerator ActivateDeathScreen()
     {
+        Debug.Log("activatedeathscreen");
         yield return new WaitForSeconds(0.8f);
         StartCoroutine(sceneFader.Fade(SceneFader.FadeDirection.In));
         yield return new WaitForSeconds(0.8f);

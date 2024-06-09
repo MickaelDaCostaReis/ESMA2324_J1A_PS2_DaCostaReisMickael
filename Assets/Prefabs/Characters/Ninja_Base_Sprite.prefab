@@ -953,6 +953,7 @@ MonoBehaviour:
   isRecoiling: 0
   speed: 50
   damage: 1
+  lootPrefab: {fileID: 8990323936622514207, guid: 8322409450003dc4c9e57252092c99f7, type: 3}
   jumpPos: {x: 0, y: 0}
   dashRange: 10
 --- !u!50 &1721590468055927964

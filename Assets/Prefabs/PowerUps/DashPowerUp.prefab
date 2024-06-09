@@ -923,3 +923,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   canvasUI: {fileID: 7991818626760911933}
   circleCollider: {fileID: 4089694746239747887}
+  shardsPrefab: {fileID: 6177813801007414252, guid: b65579dee537bea4f87b743128655015, type: 3}

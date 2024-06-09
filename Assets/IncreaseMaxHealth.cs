@@ -32,7 +32,6 @@ public class IncreaseMaxHealth : MonoBehaviour
         heartShards.targetFillAmount=PlayerManager.instance.heartShards * 0.25f;
         StartCoroutine(heartShards.LerpFill());
         yield return new WaitForSeconds(3.5f);
-        PlayerManager.instance.dashPowerUp = true;
         canvasUI.SetActive(false);
         Destroy(gameObject);
     }
